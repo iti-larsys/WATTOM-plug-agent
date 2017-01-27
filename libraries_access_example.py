@@ -33,11 +33,19 @@ sps = 250  # 250 samples per second
 adc = ADS1x15()
 
 # Read channel 0 in single-ended mode using the settings above
-volts = adc.readADCSingleEnded(0, gain, sps) / 1000
-print ("%.6f" % (volts))
+x = 0
+startTime = time.time()
+while True:
+    volts = adc.readADCSingleEnded(0, gain, sps) / 1000
+    print ("%.6f" % (volts))
+    print ("The Sample Number is :" + str(x))
+    x = x + 1
+    if x > 250 :
+        x = 0
+        print("The time to acquire 500 samples is: " + str(time.time()-startTime))
 
 #If using DFRobot shield use these (they map to PWM 3, 5 and 9)
-pwmRed = mraa.Pwm(20)
+'''pwmRed = mraa.Pwm(20)
 pwmGreen = mraa.Pwm(21)
 
 pwmRed.enable(True)
@@ -50,4 +58,4 @@ while True:
     pwmRed.write(0)
     pwmGreen.write(1)
     time.sleep(0.2)
-
+'''
