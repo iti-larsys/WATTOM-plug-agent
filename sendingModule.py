@@ -1,7 +1,7 @@
 import requests
 import json
 
-class dataSender():
+class DataSender():
     def __init__(self, collectionEventURL, collectionDataURL):
         self.EventCollectionUrl = collectionEventURL
         self.DataCollectionUrl = collectionDataURL
