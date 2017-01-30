@@ -1,5 +1,5 @@
 import math
-from powerConsumptionModule import PowerConsumption
+from PowerConsumption.powerConsumptionModule import PowerConsumption
 
 class EdisonPowerConsumption(PowerConsumption):
 
