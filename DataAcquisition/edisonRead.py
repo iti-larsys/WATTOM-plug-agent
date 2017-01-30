@@ -1,5 +1,6 @@
 from DataAcquisition.readModule import ADataAcquisition
 from libs.Spark_ADC import Adc
+import time, collections
 
 class EdisonRead(ADataAcquisition):
 
@@ -7,6 +8,9 @@ class EdisonRead(ADataAcquisition):
         self.initializeAdc()
         self.samples = []
         self.adcZero = self.calibration()
+        self.samplesNum = 500
+        self.sampleTime = 0.1
+        self.sampleInterval = self.sampleTime / self.samplesNum
 
     def initializeAdc(self):
         ain0_operational_status = 0b0
@@ -36,8 +40,15 @@ class EdisonRead(ADataAcquisition):
         return self.samples
 
     def addDAQSample(self):
-        while True:
-            self.samples.append(self.adc.adc_read() - self.adcZero)
+        self.samples = []
+        startTime = time.time() - self.sampleInterval
+        for i in range (self.samplesNum):
+            # To give some time before reading again
+            if ((time.time() - startTime) >= self.sampleInterval):
+                # Centers read value at zero
+                readValue = self.adc.adc_read() - self.adcZero
+                self.samples.append(readValue)
+                startTime += self.sampleInterval
 
     def calibration(self):
         averageVoltage = 0
