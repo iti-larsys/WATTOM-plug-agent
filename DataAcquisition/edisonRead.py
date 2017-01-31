@@ -1,13 +1,14 @@
 from DataAcquisition.readModule import ADataAcquisition
 from libs.Spark_ADC import Adc
-import time, collections
+import time
 
 class EdisonRead(ADataAcquisition):
 
-    def __init__(self):
+    def __init__(self, samplesQueue, samplesQueueLock):
+        super().__init__(samplesQueue, samplesQueueLock)
         self.initializeAdc()
-        self.samples = []
         self.adcZero = self.calibration()
+        self.samples = []
         self.samplesNum = 500
         self.sampleTime = 0.1
         self.sampleInterval = self.sampleTime / self.samplesNum
@@ -36,8 +37,6 @@ class EdisonRead(ADataAcquisition):
             ain0_comparator_queue_and_disable
         )
 
-    def getDAQSamples_OUT(self):
-        return self.samples
 
     def addDAQSample(self):
         self.samples = []
@@ -49,6 +48,10 @@ class EdisonRead(ADataAcquisition):
                 readValue = self.adc.adc_read() - self.adcZero
                 self.samples.append(readValue)
                 startTime += self.sampleInterval
+        samplesToQueue = {"samples": self.samples, "timestamp": time.time()}
+        super().samplesQueueLock.acquire()
+        super().samplesQueue.put(samplesToQueue)
+        super().samplesQueueLock.release()
 
     def calibration(self):
         averageVoltage = 0
