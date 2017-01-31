@@ -1,9 +1,11 @@
 import mraa
 import time
+import threading
 
-class LedController:
+class LedController(threading.Thread):
 
-    def __init__(self, pinRed, pinBlue, pinGreen):
+    def __init__(self, pinRed, pinBlue, pinGreen, processedSamplesQueue, processedSamplesQueueLock):
+        threading.Thread.__init__(self)
         self.pwmRed = mraa.Pwm(pinRed)
         self.pwmGreen = mraa.Pwm(pinGreen)
         self.pwmBlue = mraa.Pwm(pinBlue)
@@ -11,7 +13,8 @@ class LedController:
         self.pwmRed.enable(True)
         self.pwmGreen.enable(True)
         self.pwmBlue.enable(True)
-
+        self.processedSamplesQueue = processedSamplesQueue
+        self.processedSamplesQueueLock = processedSamplesQueueLock
 
     def greenLed(self):
         """
@@ -40,20 +43,27 @@ class LedController:
         self.pwmRed.write(1.0000)
         self.pwmBlue.write(0.0000)
 
-    def changeLeds(self,power):
+    def run(self):
         """
         Changes the led color according with the value
         :param power:
         :return:
         """
-        if power >= 1000:
-            self.redLed()
-        elif power > 300 and power < 1000:
-            self.yellowLed()
-            #print("Yellow")
-        else:
-            #print("Green")
-            self.greenLed()
+        self.greenLed()
+        while True:
+            if not self.processedSamplesQueue.empty():
+                self.processedSamplesQueueLock.acquire()
+                power = self.processedSamplesQueue.get()["power"]
+                self.processedSamplesQueueLock.release()
+                if power >= 1000:
+                    self.redLed()
+                elif power > 300 and power < 1000:
+                    self.yellowLed()
+                    #print("Yellow")
+                else:
+                    self.greenLed()
+            else:
+                print("Don't need to change LED's")
 
 """
 if __name__ == "__main__":
