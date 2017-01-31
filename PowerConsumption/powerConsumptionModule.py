@@ -1,11 +1,11 @@
-import time
+import time, threading
 from abc import ABC, abstractmethod
 
-class PowerConsumption(ABC):
+class PowerConsumption(ABC, threading.Thread):
 
-    def __init__(self, DAQSource):
+    def __init__(self):
+        threading.Thread.__init__(self)
         self.mainVoltage = 230
-        self.DAQSource = DAQSource
 
     def getPower(self):
         result = 0
