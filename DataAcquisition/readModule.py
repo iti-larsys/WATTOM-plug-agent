@@ -17,4 +17,5 @@ class ADataAcquisition(ABC, threading.Thread):
         pass
 
     def run(self):
-        self.addDAQSample(self)
+        while True:
+            self.addDAQSample()

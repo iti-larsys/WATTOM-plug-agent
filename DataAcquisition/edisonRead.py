@@ -13,6 +13,7 @@ class EdisonRead(ADataAcquisition):
         self.sampleTime = 0.1
         self.sampleInterval = self.sampleTime / self.samplesNum
 
+
     def initializeAdc(self):
         ain0_operational_status = 0b0
         ain0_input_multiplexer_configuration = 0b100
@@ -49,9 +50,11 @@ class EdisonRead(ADataAcquisition):
                 self.samples.append(readValue)
                 startTime += self.sampleInterval
         samplesToQueue = {"samples": self.samples, "timestamp": time.time()}
-        super().samplesQueueLock.acquire()
-        super().samplesQueue.put(samplesToQueue)
-        super().samplesQueueLock.release()
+        print("These are my samples: " + str(samplesToQueue))
+        self.samplesQueueLock.acquire()
+        self.samplesQueue.put(samplesToQueue)
+        self.samplesQueueLock.release()
+        print("I'm Here #2")
 
     def calibration(self):
         averageVoltage = 0
