@@ -7,10 +7,11 @@ class ADataAcquisition(ABC, threading.Thread):
     countSamples = 0
     timestamp = time.time()
 
-    def __init__(self, samplesQueue, samplesQueueLock):
+    def __init__(self, samplesQueue, samplesQueueLock, socketControl):
         threading.Thread.__init__(self)
         self.samplesQueue = samplesQueue
         self.samplesQueueLock = samplesQueueLock
+        self.socketControl = socketControl
 
     @abstractmethod
     def addDAQSample(self):
