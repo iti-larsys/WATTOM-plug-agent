@@ -1,7 +1,8 @@
 import mraa
 import threading
+from PublishSubscriber import Subscriber
 
-class LedController(threading.Thread):
+class LedController(threading.Thread, Subscriber):
 
     def __init__(self, pinRed, pinBlue, pinGreen, processedSamplesQueue, processedSamplesQueueLock):
         threading.Thread.__init__(self)
@@ -106,12 +107,19 @@ class LedController(threading.Thread):
                 if self.pinGreen >= 1.0000 and self.pinRed <= 0.0000:
                     self.pastState = self.CONST_STATE_GREEN
 
+    def update(self,data):
+        print("Subscriber LED " + data)
+
     def run(self):
         """
         Changes the led color according with the value
         :param power:
         :return:
         """
+        ##Right after startup subscrive to a publisher
+
+
+
         #Starts the plug with green power
         while True:
             power = 20
