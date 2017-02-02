@@ -1,7 +1,8 @@
 import requests
 import json
+from PublishSubscriber import Subscriber
 
-class DataSender():
+class DataSender(Subscriber):
     def __init__(self, collectionEventURL, collectionDataURL):
         self.EventCollectionUrl = collectionEventURL
         self.DataCollectionUrl = collectionDataURL
@@ -31,6 +32,8 @@ class DataSender():
         except Exception as e:
             print("Unable to send data: " + e)
 
+    def update(self,data):
+        print("Subscriver sendData " + data)
 
 """
 if __name__ == "__main__":

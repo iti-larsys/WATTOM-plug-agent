@@ -1,7 +1,8 @@
 import time, threading
 from abc import ABC, abstractmethod
+from PublishSubscriber import Publisher
 
-class PowerConsumption(ABC, threading.Thread):
+class PowerConsumption(ABC, threading.Thread, Publisher):
 
     def __init__(self, mainVoltage, samplesQueue, samplesQueueLock,  processedSamplesQueue, processedSamplesQueueLock):
         threading.Thread.__init__(self)
