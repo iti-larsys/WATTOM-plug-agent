@@ -7,8 +7,6 @@ class EdisonRead(ADataAcquisition):
     def __init__(self, samplesQueue, samplesQueueLock, socketControl):
         super().__init__(samplesQueue, samplesQueueLock, socketControl)
         self.samples = []
-        self.adc = socketControl.adc
-        self.adcZero = socketControl.calibrate
         self.samplesNum = 500
         self.sampleTime = 0.1
         self.sampleInterval = self.sampleTime / self.samplesNum
