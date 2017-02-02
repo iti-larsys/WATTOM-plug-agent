@@ -4,9 +4,10 @@ from PublishSubscriber import Publisher
 
 class PowerConsumption(ABC, threading.Thread, Publisher):
 
-    def __init__(self, mainVoltage, samplesQueue, samplesQueueLock,  processedSamplesQueue, processedSamplesQueueLock):
+    def __init__(self, samplesQueue, samplesQueueLock,  processedSamplesQueue, processedSamplesQueueLock, socketControl):
         threading.Thread.__init__(self)
-        self.mainVoltage = mainVoltage
+        self.socketControl = socketControl
+        self.mainVoltage = self.socketControl.voltage
         self.samplesQueue = samplesQueue
         self.samplesQueueLock = samplesQueueLock
         self.processedSamplesQueue = processedSamplesQueue
@@ -41,6 +42,7 @@ class PowerConsumption(ABC, threading.Thread, Publisher):
         else:
             pass
             #print("I have nothing to do")
+
     @abstractmethod
     def calculateRMS(self,result, length):
         pass
