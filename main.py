@@ -21,15 +21,14 @@ if __name__ == "__main__":
     socketControl.initializeRelay()
 
     dataAcquisitionThread= EdisonRead(samplesQueue,samplesQueueLock, socketControl)
-    #ledController = LedController()
     powerCalculationThread = EdisonPowerConsumption(samplesQueue, samplesQueueLock,  processedSamplesQueue, processedSamplesQueueLock, socketControl)
-    ledControl = LedController( 20, 14, 21, processedSamplesQueue, processedSamplesQueueLock)
+    ledControlThread = LedController( 20, 14, 21, processedSamplesQueue, processedSamplesQueueLock)
     flaskThread = threading.Thread(target=runFlask)
-    threads = [dataAcquisitionThread,powerCalculationThread, flaskThread]
+    threads = [flaskThread, ledControlThread, powerCalculationThread, dataAcquisitionThread]
 
     ##Starts the threads
     flaskThread.start()
-    ledControl.start()
+    ledControlThread.start()
     powerCalculationThread.start()
     dataAcquisitionThread.start()
     ##Waits fr all threads to finish

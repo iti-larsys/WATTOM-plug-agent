@@ -41,6 +41,7 @@ class PowerConsumption(ABC, threading.Thread):
         else:
             pass
             #print("I have nothing to do")
+
     @abstractmethod
     def calculateRMS(self,result, length):
         pass
