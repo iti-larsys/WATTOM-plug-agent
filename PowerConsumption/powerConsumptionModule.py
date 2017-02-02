@@ -3,9 +3,10 @@ from abc import ABC, abstractmethod
 
 class PowerConsumption(ABC, threading.Thread):
 
-    def __init__(self, mainVoltage, samplesQueue, samplesQueueLock,  processedSamplesQueue, processedSamplesQueueLock):
+    def __init__(self, samplesQueue, samplesQueueLock,  processedSamplesQueue, processedSamplesQueueLock, socketControl):
         threading.Thread.__init__(self)
-        self.mainVoltage = mainVoltage
+        self.socketControl = socketControl
+        self.mainVoltage = self.socketControl.voltage
         self.samplesQueue = samplesQueue
         self.samplesQueueLock = samplesQueueLock
         self.processedSamplesQueue = processedSamplesQueue
