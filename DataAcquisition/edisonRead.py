@@ -50,11 +50,11 @@ class EdisonRead(ADataAcquisition):
                 self.samples.append(readValue)
                 startTime += self.sampleInterval
         samplesToQueue = {"samples": self.samples, "timestamp": time.time()}
-        print("These are my samples: " + str(samplesToQueue))
+        #print("These are my samples: " + str(samplesToQueue))
         self.samplesQueueLock.acquire()
         self.samplesQueue.put(samplesToQueue)
         self.samplesQueueLock.release()
-        print("I'm Here #2")
+        #print("I'm Here #2")
 
     def calibration(self):
         averageVoltage = 0
