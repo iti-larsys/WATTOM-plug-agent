@@ -27,7 +27,7 @@ class PowerConsumption(ABC, threading.Thread):
             # Calculates Power as an integer
             #TODO: How to pass main voltage
             power = (ampRMS * self.mainVoltage)
-            print(round(power))
+            #print(round(power))
             # Ignores some of the noise
             if (ampRMS <= 0.10):
                power = 0
@@ -36,10 +36,11 @@ class PowerConsumption(ABC, threading.Thread):
             #Stores the samples in the processed sample queue
             self.processedSamplesQueueLock.acquire()
             self.processedSamplesQueue.put({'power': power, 'current': ampRMS, 'timestamp': str(samples["timestamp"])})
-            print("These are the processed samples: "+str(self.processedSamplesQueue) +  "this is my size" + str(self.processedSamplesQueue.qsize()))
+            #print("These are the processed samples: "+str(self.processedSamplesQueue) +  "this is my size" + str(self.processedSamplesQueue.qsize()))
             self.processedSamplesQueueLock.release()
         else:
-            print("I have nothing to do")
+            pass
+            #print("I have nothing to do")
     @abstractmethod
     def calculateRMS(self,result, length):
         pass
