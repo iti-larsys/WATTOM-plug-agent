@@ -1,6 +1,6 @@
 import requests
 import json
-from PublishSubscriber import Subscriber
+from PublishSubscriber.Subscriber import Subscriber
 
 class DataSender(Subscriber):
     def __init__(self, collectionEventURL, collectionDataURL):
@@ -33,7 +33,7 @@ class DataSender(Subscriber):
             print("Unable to send data: " + e)
 
     def update(self,data):
-        print("Subscriver sendData " + data)
+        print("Subscriber sendData " + str(data['power']))
 
 """
 if __name__ == "__main__":

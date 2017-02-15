@@ -10,6 +10,7 @@ class EdisonRead(ADataAcquisition):
         self.samplesNum = 500
         self.sampleTime = 0.1
         self.sampleInterval = self.sampleTime / self.samplesNum
+        self.adcZero = self.socketControl.calibrate()
 
 
     def addDAQSample(self):
@@ -24,7 +25,9 @@ class EdisonRead(ADataAcquisition):
             time.sleep(self.sampleInterval)
         samplesToQueue = {"samples": self.samples, "timestamp": time.time()}
         print("These are my samples: " + str(samplesToQueue))
+
+        #TODO: ATTENTION!!! WHEN IT'S FULL IT WILL BLOCK THE PROCESS
         self.samplesQueueLock.acquire()
         self.samplesQueue.put(samplesToQueue)
         self.samplesQueueLock.release()
-        print("I'm Here #2")
+        #print("I'm Here #2")
