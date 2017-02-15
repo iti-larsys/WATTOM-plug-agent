@@ -1,7 +1,8 @@
 import time, threading
 from abc import ABC, abstractmethod
+from PublishSubscriber.Publisher import Publisher
 
-class PowerConsumption(ABC, threading.Thread):
+class PowerConsumption(threading.Thread, Publisher):
 
     def __init__(self, samplesQueue, samplesQueueLock,  processedSamplesQueue, processedSamplesQueueLock, socketControl):
         threading.Thread.__init__(self)
@@ -34,10 +35,12 @@ class PowerConsumption(ABC, threading.Thread):
                ampRMS = 0
 
             #Stores the samples in the processed sample queue
-            self.processedSamplesQueueLock.acquire()
-            self.processedSamplesQueue.put({'power': power, 'current': ampRMS, 'timestamp': str(samples["timestamp"])})
+            #self.processedSamplesQueueLock.acquire()
+            #self.processedSamplesQueue.put({'power': power, 'current': ampRMS, 'timestamp': str(samples["timestamp"])})
             #print("These are the processed samples: "+str(self.processedSamplesQueue) +  "this is my size" + str(self.processedSamplesQueue.qsize()))
-            self.processedSamplesQueueLock.release()
+            print(power)
+            self.notify({'power': power, 'current': ampRMS, 'timestamp': str(samples["timestamp"])})
+            #self.processedSamplesQueueLock.release()
         else:
             pass
             #print("I have nothing to do")

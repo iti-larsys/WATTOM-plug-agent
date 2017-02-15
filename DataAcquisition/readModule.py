@@ -12,6 +12,7 @@ class ADataAcquisition(ABC, threading.Thread):
         self.samplesQueue = samplesQueue
         self.samplesQueueLock = samplesQueueLock
         self.socketControl = socketControl
+        self.adc = self.socketControl.adc
 
     @abstractmethod
     def addDAQSample(self):
