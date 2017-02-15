@@ -1,10 +1,10 @@
 import mraa
 import threading
-from PublishSubscriber import Subscriber
+from PublishSubscriber.Subscriber import Subscriber
 
 class LedController(threading.Thread, Subscriber):
 
-    def __init__(self, pinRed, pinBlue, pinGreen, processedSamplesQueue, processedSamplesQueueLock):
+    def __init__(self, pinRed, pinBlue, pinGreen):
         threading.Thread.__init__(self)
         self.pwmRed = mraa.Pwm(pinRed)
         self.pwmGreen = mraa.Pwm(pinGreen)
@@ -13,8 +13,8 @@ class LedController(threading.Thread, Subscriber):
         self.pwmRed.enable(True)
         self.pwmGreen.enable(True)
         self.pwmBlue.enable(True)
-        self.processedSamplesQueue = processedSamplesQueue
-        self.processedSamplesQueueLock = processedSamplesQueueLock
+        #self.processedSamplesQueue = processedSamplesQueue
+        #self.processedSamplesQueueLock = processedSamplesQueueLock
         # STATE CONSTANTS
         self.CONST_STATE_GREEN = "green"
         self.CONST_STATE_YELLOW = "yellow"
@@ -24,10 +24,13 @@ class LedController(threading.Thread, Subscriber):
         self.pastState = self.CONST_STATE_GREEN
         #The color min value
         self.CONST_GRADIENT = 0.10
-
+        #Starts with the led in green
         self.pinRed = 0.0000
         self.pinBlue = 0.0000
         self.pinGreen = 0.0000
+        """self.led(self.pinGreen,self.pinRed)
+        """#Data that is receive by the thread
+        self.power = 0
 
     def led(self,valueGreen, valueRed):
         """
@@ -39,16 +42,16 @@ class LedController(threading.Thread, Subscriber):
         self.pwmGreen.write(valueGreen)
         self.pwmRed.write(valueRed)
 
-    def changeState(self, power):
+    def changeState(self):
         """
         Will make the current state var according with the power received.
         :param power:
         :return:
         """
         self.pastState = self.currentState
-        if power >= 1000:
+        if self.power >= 1000:
             self.currentState = self.CONST_STATE_RED
-        elif power > 300 and power < 1000:
+        elif self.power > 300 and self.power < 1000:
             self.currentState = self.CONST_STATE_YELLOW
         else:
             self.currentState = self.CONST_STATE_GREEN
@@ -108,7 +111,10 @@ class LedController(threading.Thread, Subscriber):
                     self.pastState = self.CONST_STATE_GREEN
 
     def update(self,data):
-        print("Subscriber LED " + data)
+        self.power = data['power']
+        #print("Subscriber LED " + ))
+        #self.changeState(data['power'])
+        #self.colorChange()
 
     def run(self):
         """
@@ -122,8 +128,7 @@ class LedController(threading.Thread, Subscriber):
 
         #Starts the plug with green power
         while True:
-            power = 20
-            self.changeState(self, power)
+            self.changeState()
             self.colorChange()
 
 """
