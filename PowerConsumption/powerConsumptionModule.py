@@ -4,51 +4,49 @@ from PublishSubscriber.Publisher import Publisher
 
 class PowerConsumption(threading.Thread, Publisher):
 
-    def __init__(self, samplesQueue, samplesQueueLock,  processedSamplesQueue, processedSamplesQueueLock, socketControl):
+    def __init__(self, samplesQueue, samplesQueueSemaphore, samplesQueueFlowControlSemaphore, socketControl):
         threading.Thread.__init__(self)
         self.socketControl = socketControl
         self.mainVoltage = self.socketControl.voltage
         self.samplesQueue = samplesQueue
-        self.samplesQueueLock = samplesQueueLock
-        self.processedSamplesQueue = processedSamplesQueue
-        self.processedSamplesQueueLock = processedSamplesQueueLock
+        self.samplesQueueSemaphore = samplesQueueSemaphore
+        self.samplesQueueFlowControlSemaphore = samplesQueueFlowControlSemaphore
 
     def getPower(self):
         result = 0
-        if not self.samplesQueue.empty():
-            self.samplesQueueLock.acquire()
-            samples = self.samplesQueue.get()
-            self.samplesQueueLock.release()
+        print ("Going to calculate power")
+        self.samplesQueueFlowControlSemaphore.acquire()
+        samples = self.samplesQueue.pop(0)
+        self.samplesQueueSemaphore.release()
 
-            for sample in samples["samples"]:
-                result += sample * sample
-            # Calculates RMS current. 3300 = 3.3V/mV. 1650 is the max ADC count i can get with 3.3V
-            ampRMS = self.calculateRMS(result,len(samples["samples"]))
-            #print("Calculate power")
-            # Calculates Power as an integer
-            #TODO: How to pass main voltage
-            power = (ampRMS * self.mainVoltage)
-            #print(round(power))
-            # Ignores some of the noise
-            if (ampRMS <= 0.10):
-               power = 0
-               ampRMS = 0
 
-            #Stores the samples in the processed sample queue
-            #self.processedSamplesQueueLock.acquire()
-            #self.processedSamplesQueue.put({'power': power, 'current': ampRMS, 'timestamp': str(samples["timestamp"])})
-            #print("These are the processed samples: "+str(self.processedSamplesQueue) +  "this is my size" + str(self.processedSamplesQueue.qsize()))
-            print(power)
-            self.notify({'power': power, 'current': ampRMS, 'timestamp': str(samples["timestamp"])})
-            #self.processedSamplesQueueLock.release()
-        else:
-            pass
-            #print("I have nothing to do")
+        for sample in samples["samples"]:
+            result += sample * sample
+        # Calculates RMS current. 3300 = 3.3V/mV. 1650 is the max ADC count i can get with 3.3V
+        ampRMS = self.calculateRMS(result,len(samples["samples"]))
+        #print("Calculate power")
+        # Calculates Power as an integer
+        #TODO: How to pass main voltage
+        power = (ampRMS * self.mainVoltage)
+        #print(round(power))
+        # Ignores some of the noise
+        if (ampRMS <= 0.10):
+            power = 0
+            ampRMS = 0
+
+        #Stores the samples in the processed sample queue
+        #self.processedSamplesQueueLock.acquire()
+        #self.processedSamplesQueue.put({'power': power, 'current': ampRMS, 'timestamp': str(samples["timestamp"])})
+        #print("These are the processed samples: "+str(self.processedSamplesQueue) +  "this is my size" + str(self.processedSamplesQueue.qsize()))
+        print("power " + str(power))
+        self.notify({'power': power, 'current': ampRMS, 'timestamp': str(samples["timestamp"])})
+        #self.processedSamplesQueueLock.release()
 
     @abstractmethod
     def calculateRMS(self,result, length):
         pass
 
     def run(self):
+        print("Starting thread power")
         while True:
             self.getPower()

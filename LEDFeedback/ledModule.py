@@ -30,7 +30,8 @@ class LedController(threading.Thread, Subscriber):
         self.pinGreen = 0.0000
         """self.led(self.pinGreen,self.pinRed)
         """#Data that is receive by the thread
-        self.power = 0
+        self.powerBuffer = []
+        self.ledSemaphoreController = threading.Semaphore(value=0) # This will controll the led reads on the list that has the current values
 
     def led(self,valueGreen, valueRed):
         """
@@ -48,6 +49,8 @@ class LedController(threading.Thread, Subscriber):
         :param power:
         :return:
         """
+        self.power = self.powerBuffer.pop(0)
+
         previousState = self.currentState
         self.pastState = self.currentState
         if self.power >= 1000:
@@ -80,29 +83,19 @@ class LedController(threading.Thread, Subscriber):
 
 
         if self.currentState == self.CONST_STATE_YELLOW:
-            print("yellow")
-            print("past " + self.pastState) 
-            print(self.pinRed)
-            print(self.pinGreen)
             if self.pastState == self.CONST_STATE_YELLOW:
-                print("já era amarelo")
                 self.led(1.0000,1.0000)
                 self.pinRed = 1.0000
                 self.pinGreen = 1.0000
             elif self.pastState == self.CONST_STATE_RED:
-                print("era vermelho")
                 while self.pinGreen < 1.0000:
                     self.pinGreen = self.pinGreen + self.CONST_GRADIENT
-                    print(self.pinRed)
-                    print(self.pinGreen)
                     self.led(self.pinGreen, 1.0000)
                     time.sleep(0.1)
                 self.pastState = self.CONST_STATE_YELLOW
             else :
                 while self.pinRed < 1.0000:
                     self.pinRed = self.pinRed + self.CONST_GRADIENT
-                    print(self.pinRed)
-                    print(self.pinGreen)
                     self.led(1.0000, self.pinRed)
                     time.sleep(0.1)
                 self.pastState = self.CONST_STATE_YELLOW
@@ -122,14 +115,14 @@ class LedController(threading.Thread, Subscriber):
             else:
                 while self.pinGreen < 1.0000 and self.pinRed > 0.0000:
                     self.pinRed = self.pinRed - self.CONST_GRADIENT
-                    print(self.pinRed)
-                    print(self.pinGreen)
                     self.led(1.0000,self.pinRed)
                     time.sleep(0.1)
                 self.pastState = self.CONST_STATE_GREEN
 
     def update(self,data):
-        self.power = data['power']
+        #print("LED receive power")
+        self.powerBuffer.append(data['power'])
+        self.ledSemaphoreController.release()
         #print("Subscriber LED " + ))
         #self.changeState(data['power'])
         #self.colorChange()
@@ -146,6 +139,7 @@ class LedController(threading.Thread, Subscriber):
 
         #Starts the plug with green power
         while True:
+            self.ledSemaphoreController.acquire()
             self.changeState()
             self.colorChange()
 

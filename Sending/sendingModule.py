@@ -1,11 +1,14 @@
-import requests
-import json
+import requests, time
+import json, threading
 from PublishSubscriber.Subscriber import Subscriber
 
-class DataSender(Subscriber):
+class DataSender(Subscriber, threading.Thread):
     def __init__(self, collectionEventURL, collectionDataURL):
+        threading.Thread.__init__(self)
         self.EventCollectionUrl = collectionEventURL
         self.DataCollectionUrl = collectionDataURL
+        self.buffer = []
+        self.dataSendSemaphore = threading.Semaphore(value=0)
 
     def sendDataEvent(self,payload):
         """
@@ -13,11 +16,12 @@ class DataSender(Subscriber):
         :param payload:
         :return:
         """
+        print("Going to send event data")
         try:
             headers = {'content-type': 'application/json'}
             req = requests.post(self.EventCollectionUrl,data=json.dumps(payload),headers=headers)
         except Exception as e:
-            print("Unable to send data: " + e)
+            print("Unable to send data: " + str(e))
 
 
     def sendDataValues(self,payload):
@@ -30,10 +34,20 @@ class DataSender(Subscriber):
             headers = {'content-type': 'application/json'}
             req = requests.post(self.DataCollectionUrl,data=json.dumps(payload),headers=headers)
         except Exception as e:
-            print("Unable to send data: " + e)
+            print("Unable to send data: " + str(e))
 
     def update(self,data):
-        print("Subscriber sendData " + str(data['power']))
+        print("Going to send power data")
+        self.buffer.append(data)
+        self.dataSendSemaphore.release()
+
+    def run(self):
+        while True:
+            self.dataSendSemaphore.acquire()
+            data = self.buffer.pop(0)
+            print("Sending data")
+            self.sendDataValues({'power': data["power"], 'current': data["current"], 'timestamp': data["timestamp"]})
+
 
 """
 if __name__ == "__main__":
