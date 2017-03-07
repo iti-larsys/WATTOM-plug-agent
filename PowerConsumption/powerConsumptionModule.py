@@ -2,23 +2,17 @@ import time, threading
 from abc import ABC, abstractmethod
 from PublishSubscriber.Publisher import Publisher
 
-class PowerConsumption(threading.Thread, Publisher):
+class PowerConsumption(Publisher):
 
-    def __init__(self, samplesQueue, samplesQueueSemaphore, samplesQueueFlowControlSemaphore, socketControl):
-        threading.Thread.__init__(self)
+    def __init__(self, socketControl, dataProcessingSemaphore, powerSamples):
         self.socketControl = socketControl
         self.mainVoltage = self.socketControl.voltage
-        self.samplesQueue = samplesQueue
-        self.samplesQueueSemaphore = samplesQueueSemaphore
-        self.samplesQueueFlowControlSemaphore = samplesQueueFlowControlSemaphore
+        self.dataProcessingSemaphore = dataProcessingSemaphore
+        self.powerSamples = powerSamples
 
-    def getPower(self):
+    def getPower(self, samples):
         result = 0
         print ("Going to calculate power")
-        self.samplesQueueFlowControlSemaphore.acquire()
-        samples = self.samplesQueue.pop(0)
-        self.samplesQueueSemaphore.release()
-
 
         for sample in samples["samples"]:
             result += sample * sample
@@ -30,6 +24,8 @@ class PowerConsumption(threading.Thread, Publisher):
         power = (ampRMS * self.mainVoltage)
         #print(round(power))
         # Ignores some of the noise
+        print("power " + str(power))
+        print("RMS " + str(ampRMS))
         if (ampRMS <= 0.10):
             power = 0
             ampRMS = 0
@@ -39,14 +35,11 @@ class PowerConsumption(threading.Thread, Publisher):
         #self.processedSamplesQueue.put({'power': power, 'current': ampRMS, 'timestamp': str(samples["timestamp"])})
         #print("These are the processed samples: "+str(self.processedSamplesQueue) +  "this is my size" + str(self.processedSamplesQueue.qsize()))
         print("power " + str(power))
-        self.notify({'power': power, 'current': ampRMS, 'timestamp': str(samples["timestamp"])})
+        print("RMS " + str(ampRMS))
+        self.powerSamples.append({'power': power, 'current': ampRMS, 'timestamp': str(samples["timestamp"])})
+        self.dataProcessingSemaphore.release()
         #self.processedSamplesQueueLock.release()
 
     @abstractmethod
     def calculateRMS(self,result, length):
         pass
-
-    def run(self):
-        print("Starting thread power")
-        while True:
-            self.getPower()
