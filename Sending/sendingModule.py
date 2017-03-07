@@ -1,10 +1,9 @@
-import requests, time
+import grequests, time
 import json, threading
 from PublishSubscriber.Subscriber import Subscriber
 
-class DataSender(Subscriber, threading.Thread):
+class DataSender(Subscriber):
     def __init__(self, collectionEventURL, collectionDataURL):
-        threading.Thread.__init__(self)
         self.EventCollectionUrl = collectionEventURL
         self.DataCollectionUrl = collectionDataURL
         self.buffer = []
@@ -17,12 +16,9 @@ class DataSender(Subscriber, threading.Thread):
         :return:
         """
         print("Going to send event data")
-        try:
-            headers = {'content-type': 'application/json'}
-            req = requests.post(self.EventCollectionUrl,data=json.dumps(payload),headers=headers)
-        except Exception as e:
-            print("Unable to send data: " + str(e))
-
+        headers = {'content-type': 'application/json'}
+        req = grequests.post(self.EventCollectionUrl,data=json.dumps(payload),headers=headers)
+        responses = grequests.map([req], exception_handler=self.requestException)
 
     def sendDataValues(self,payload):
         """
@@ -30,24 +26,17 @@ class DataSender(Subscriber, threading.Thread):
         :param payload:
         :return:
         """
-        try:
-            headers = {'content-type': 'application/json'}
-            req = requests.post(self.DataCollectionUrl,data=json.dumps(payload),headers=headers)
-        except Exception as e:
-            print("Unable to send data: " + str(e))
+        headers = {'content-type': 'application/json'}
+        req = grequests.post(self.DataCollectionUrl,data=json.dumps(payload),headers=headers)
+        responses = grequests.map([req], exception_handler=self.requestException)
+
+    def requestException(self,request, exception):
+        print("Unable to send data: " + str(exception))
 
     def update(self,data):
         print("Going to send power data")
         self.buffer.append(data)
         self.dataSendSemaphore.release()
-
-    def run(self):
-        while True:
-            self.dataSendSemaphore.acquire()
-            data = self.buffer.pop(0)
-            print("Sending data")
-            self.sendDataValues({'power': data["power"], 'current': data["current"], 'timestamp': data["timestamp"]})
-
 
 """
 if __name__ == "__main__":

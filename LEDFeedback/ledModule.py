@@ -2,10 +2,9 @@ import mraa
 import threading, time
 from PublishSubscriber.Subscriber import Subscriber
 
-class LedController(threading.Thread, Subscriber):
+class LedController(Subscriber):
 
     def __init__(self, pinRed, pinBlue, pinGreen):
-        threading.Thread.__init__(self)
         self.pwmRed = mraa.Pwm(pinRed)
         self.pwmGreen = mraa.Pwm(pinGreen)
         self.pwmBlue = mraa.Pwm(pinBlue)
@@ -43,13 +42,13 @@ class LedController(threading.Thread, Subscriber):
         self.pwmGreen.write(valueGreen)
         self.pwmRed.write(valueRed)
 
-    def changeState(self):
+    def changeState(self, power):
         """
         Will make the current state var according with the power received.
         :param power:
         :return:
         """
-        self.power = self.powerBuffer.pop(0)
+        self.power = power
 
         previousState = self.currentState
         self.pastState = self.currentState
@@ -126,22 +125,6 @@ class LedController(threading.Thread, Subscriber):
         #print("Subscriber LED " + ))
         #self.changeState(data['power'])
         #self.colorChange()
-
-    def run(self):
-        """
-        Changes the led color according with the value
-        :param power:
-        :return:
-        """
-        ##Right after startup subscrive to a publisher
-
-
-
-        #Starts the plug with green power
-        while True:
-            self.ledSemaphoreController.acquire()
-            self.changeState()
-            self.colorChange()
 
 """
 if __name__ == "__main__":
