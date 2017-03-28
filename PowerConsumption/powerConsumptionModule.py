@@ -11,6 +11,7 @@ class PowerConsumption(Publisher):
         self.powerSamples = powerSamples
 
     def getPower(self, samples):
+
         result = 0
         print ("Going to calculate power")
 

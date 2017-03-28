@@ -1,6 +1,7 @@
 from DataAcquisition.edisonRead import EdisonRead
 from PowerConsumption.edisonPowerConsumption import EdisonPowerConsumption
-from LEDFeedback.ledModule import LedController
+#from LEDFeedback.ledModule import LedController
+from LEDFeedback.addressableLed import AddressableLedController
 from SocketControl.edisonControl import EdisonControl
 from EventDetector.eventDetection import EventDetection
 from WebServer.app import app
@@ -8,14 +9,19 @@ import threading, time, queue
 from Sending.sendingModule import DataSender
 from Threads.DataAcquisitionThread import DataAcquisitionThread
 from Threads.DataProcessingThread import DataProcessingThread
+import time
 
 mainVoltage = 230 # TODO Comes from a configuration file
+
 socketControl = EdisonControl(mainVoltage)
 
 def runFlask():
     app.run("0.0.0.0", debug=True, use_reloader=False)
 
 if __name__ == "__main__":
+
+    AddressableLedController().initializeLeds(0, 100, 0, 0, 1)
+
     powerSamples = []
     dataProcessingSemaphore = threading.Semaphore(value=0)
     socketControl.initializeRelay()
@@ -25,7 +31,7 @@ if __name__ == "__main__":
     dataAcquisitionThread = DataAcquisitionThread(socketControl, dataProcessingSemaphore, powerSamples)
     dataProcessingThread = DataProcessingThread(socketControl,dataProcessingSemaphore,powerSamples)
 
-    threads = [flaskThread, dataAcquisitionThread, dataProcessingThread]
+    threads = [flaskThread, dataProcessingThread]#, dataAcquisitionThread]
 
     # Starts the threads
     flaskThread.start()  # Starts the webserver
