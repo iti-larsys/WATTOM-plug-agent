@@ -26,11 +26,5 @@ class DataProcessingThread(threading.Thread):
             data = self.powerSamples.pop(0)
             self.ledControl.changeState(data["power"])
             self.ledControl.colorChange()
-            # first byte at 1 indicates, that we are sending the power, second indicates the power
-            self.ledControl.changePower(data["power"])
-            '''power = randint(0,2000)
-            print(power)
-            self.ledControl.changePower(power)'''
-            time.sleep(0.5 )
             #self.dataSender.sendDataValues({'power': data["power"], 'current': data["current"], 'timestamp': data["timestamp"]})
             #self.eventDetector.detectEvent(data["power"])
