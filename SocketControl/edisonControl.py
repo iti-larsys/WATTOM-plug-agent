@@ -1,4 +1,5 @@
 from SocketControl.socketControl import SocketControl
+from LEDFeedback.addressableLed import AddressableLedController
 from libs.Spark_ADC import Adc
 import mraa
 
@@ -9,17 +10,21 @@ class EdisonControl(SocketControl):
         self.initializeAdc()
         self.relay = mraa.Gpio(37)
         self.relay.dir(mraa.DIR_OUT)
+        self.ledControl = AddressableLedController()
 
     def changeRelay(self):
         if self.relay.read():
             self.relay.write(0)
+            self.ledController.changeRelayState(0)
             return False
         else:
             self.relay.write(1)
+            self.ledController.changeRelayState(1)
             return True
 
     def initializeRelay(self):
         self.relay.write(1)
+        #self.ledController.changeRelayState(1)
 
     def calibrate(self):
         averageVoltage = 0
