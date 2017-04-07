@@ -39,10 +39,10 @@ class AddressableLedController():
         data = bytearray([6,ledID])
         self.changeLeds(data)
 
-    def initializeLeds(self, orientation, ledID, delay, relayState, personState):
+    def initializeLeds(self, orientation, delay, ledID, relayState, personState):
         print("mandei inicializar")
         # first byte at 0 indicates, that we are sending the initial config, second indicates the kind of movement
-        data = bytearray([0,orientation, ledID, delay, relayState, personState])
+        data = bytearray([0,orientation, delay, ledID, relayState, personState])
         self.changeLeds(data)
 
     def changeLeds(self, data):
