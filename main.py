@@ -4,37 +4,54 @@ from PowerConsumption.edisonPowerConsumption import EdisonPowerConsumption
 from LEDFeedback.addressableLed import AddressableLedController
 from SocketControl.edisonControl import EdisonControl
 from EventDetector.eventDetection import EventDetection
-from WebServer.app import app
+from WebServer.app import app, socketio
+from WebSockets.WebSockets import WSHandler
 import threading, time, queue
 from Sending.sendingModule import DataSender
 from Threads.DataAcquisitionThread import DataAcquisitionThread
 from Threads.DataProcessingThread import DataProcessingThread
+from mDNS.mDNS_Advertisement import mDNS_Advertisment
 import time
+import signal
+import sys
+import socket
+import tornado.httpserver
+import tornado.ioloop
+import tornado.web
+import netifaces as ni
+
+ip = ni.ifaddresses('wlan0')[2][0]['addr']
 
 mainVoltage = 230 # TODO Comes from a configuration file
 
 socketControl = EdisonControl(mainVoltage)
 
+mDNS = mDNS_Advertisment()
+
+threads = []
+
 def runFlask():
-    app.run("0.0.0.0", debug=True, use_reloader=False)
+    socketio.run(app, host=ip, debug=True, use_reloader=False)
+
+def signal_handler(signal, frame):
+    print('You pressed Ctrl+C!')
+    mDNS.stopAdvertise()
+    sys.exit(0)
 
 if __name__ == "__main__":
-
-    AddressableLedController().initializeLeds(0, 100, 0, 0, 1)
-
+    flaskThread = threading.Thread(target=runFlask, daemon=True)
+    flaskThread.start()
+    mDNS.advertise()
+    signal.signal(signal.SIGINT, signal_handler)
     powerSamples = []
     dataProcessingSemaphore = threading.Semaphore(value=0)
     socketControl.initializeRelay()
 
-    flaskThread = threading.Thread(target=runFlask)
-
     dataAcquisitionThread = DataAcquisitionThread(socketControl, dataProcessingSemaphore, powerSamples)
     dataProcessingThread = DataProcessingThread(socketControl,dataProcessingSemaphore,powerSamples)
 
-    threads = [flaskThread, dataProcessingThread]#, dataAcquisitionThread]
+    threads = [dataProcessingThread, dataAcquisitionThread]
 
-    # Starts the threads
-    flaskThread.start()  # Starts the webserver
 
     dataProcessingThread.start()
     dataAcquisitionThread.start()
@@ -42,7 +59,6 @@ if __name__ == "__main__":
     # Waits fr all threads to finish
     for t in threads:
         t.join()
-
     # samplesQueue = []
     # samplesQueueSemaphore = threading.Semaphore(value=60)
     # samplesQueueFlowControlSemaphore = threading.Semaphore(value=0)
