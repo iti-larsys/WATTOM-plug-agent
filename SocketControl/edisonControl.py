@@ -12,15 +12,9 @@ class EdisonControl(SocketControl):
         self.relay.dir(mraa.DIR_OUT)
         self.ledControl = AddressableLedController()
 
-    def changeRelay(self):
-        if self.relay.read():
-            self.relay.write(0)
-            self.ledController.changeRelayState(0)
-            return False
-        else:
-            self.relay.write(1)
-            self.ledController.changeRelayState(1)
-            return True
+    def changeRelay(self, state):
+        self.relay.write(state)
+        AddressableLedController().changeRelayState(state)
 
     def initializeRelay(self):
         self.relay.write(1)

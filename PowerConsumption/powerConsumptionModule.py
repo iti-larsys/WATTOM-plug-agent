@@ -4,11 +4,9 @@ from PublishSubscriber.Publisher import Publisher
 
 class PowerConsumption(Publisher):
 
-    def __init__(self, socketControl, dataProcessingSemaphore, powerSamples):
+    def __init__(self, socketControl):
         self.socketControl = socketControl
         self.mainVoltage = self.socketControl.voltage
-        self.dataProcessingSemaphore = dataProcessingSemaphore
-        self.powerSamples = powerSamples
 
     def getPower(self, samples):
 
@@ -37,8 +35,8 @@ class PowerConsumption(Publisher):
         #print("These are the processed samples: "+str(self.processedSamplesQueue) +  "this is my size" + str(self.processedSamplesQueue.qsize()))
         print("power " + str(power))
         print("RMS " + str(ampRMS))
-        self.powerSamples.append({'power': power, 'current': ampRMS, 'timestamp': str(samples["timestamp"])})
-        self.dataProcessingSemaphore.release()
+        self.notify({'power': power, 'current': ampRMS, 'timestamp': str(samples["timestamp"])})
+        #self.dataProcessingSemaphore.release()
         #self.processedSamplesQueueLock.release()
 
     @abstractmethod

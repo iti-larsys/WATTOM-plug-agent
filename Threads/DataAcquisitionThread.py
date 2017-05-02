@@ -5,6 +5,7 @@ from PowerConsumption.edisonPowerConsumption import EdisonPowerConsumption
 class DataAcquisitionThread(threading.Thread):
     def __init__(self, socketControl, dataProcessingSemaphore, powerSamples):
         threading.Thread.__init__(self)
+        self.daemon = True
         self.readModule = EdisonRead(socketControl)
         self.powerConsumptionModule = EdisonPowerConsumption(socketControl, dataProcessingSemaphore, powerSamples)
 

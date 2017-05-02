@@ -8,6 +8,7 @@ from random import randint
 class DataProcessingThread(threading.Thread):
     def __init__(self, socketControl, dataProcessingSemaphore, powerSamples):
         threading.Thread.__init__(self)
+        self.daemon = True
         #self.ledControl = LedController(20, 14, 21)
 
         self.ledControl = AddressableLedController()
