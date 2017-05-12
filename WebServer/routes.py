@@ -1,6 +1,5 @@
-from WebServer.app import app, socketio
-from main import socketControl
-from flask import json, request
+from WebServer.app import app, socketio, socketControl, background_thread, thread
+from flask import json, request, render_template
 from flask_socketio import SocketIO, emit
 from LEDFeedback.addressableLed import AddressableLedController
 
@@ -22,9 +21,17 @@ from LEDFeedback.addressableLed import AddressableLedController
 #     socketControl.calibrate()
 #     return json.dumps(True)
 
+@app.route('/')
+def index():
+    return render_template('index.html', async_mode=socketio.async_mode)
+
 @socketio.on('connect')
 def test_connect():
-    print('Client new Connection')
+    print("Client connected")
+    global thread
+    if thread is None:
+        thread = socketio.start_background_task(target=background_thread)
+    emit('my_response', {'data': 'Connected', 'count': 0})
 
 @socketio.on('disconnect')
 def test_disconnect():
@@ -58,3 +65,7 @@ def changeDelay(message):
 @socketio.on('changePosition')
 def changePosition(message):
     AddressableLedController().changeLed(message["position"])
+
+@socketio.on('my_ping')
+def ping_pong():
+    emit('my_pong')
