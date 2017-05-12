@@ -4,7 +4,7 @@ from PowerConsumption.powerConsumptionModule import PowerConsumption
 class EdisonPowerConsumption(PowerConsumption):
 
     def __init__(self, socketControl):
-        self.sensibility = 66
+        self.sensibility = 122.1
         super().__init__(socketControl)
 
     def calculateRMS(self,result, length):
