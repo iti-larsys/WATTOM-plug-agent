@@ -237,6 +237,10 @@ def changePosition(message):
 def ping_pong():
     emit('my_pong')
 
+@socketio.on('selected')
+def selected(message):
+    AddressableLedController().makeSelectedFeedback()
+
 @socketio.on('connect')
 def test_connect():
     print("Client connected")

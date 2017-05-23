@@ -1,5 +1,6 @@
 import mraa, struct
 from PublishSubscriber.Subscriber import Subscriber
+from threading import Timer
 
 def interruptHandler(self,gpio):
    print("pin " + str(gpio.getPin(True)) + " = " + str(gpio.read()))
@@ -8,6 +9,7 @@ class AddressableLedController(Subscriber):
 
     __instance = None
     x = mraa.Gpio(20)
+    selected = False
 
     def __new__(cls):
         if AddressableLedController.__instance is None:
@@ -65,5 +67,19 @@ class AddressableLedController(Subscriber):
         AddressableLedController.i2c.write(data)
         print("Enviei")
 
+    def makeSelectedFeedback(self):
+        data = bytearray([6, 1])
+        self.changeLeds(data)
+        self.selected = True
+        r = Timer(10.0, self.stopSelectedFeedback)
+        r.start()
+
+    def stopSelectedFeedback(self):
+        data = bytearray([6, 0])
+        self.changeLeds(data)
+        self.selected = False
+
     def update(self, data):
-        self.changePower(data["power"])
+        if not self.selected:
+            self.changePower(data["power"])
+
