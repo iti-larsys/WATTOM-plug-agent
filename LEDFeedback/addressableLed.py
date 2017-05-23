@@ -71,13 +71,17 @@ class AddressableLedController(Subscriber):
         data = bytearray([6, 1])
         self.changeLeds(data)
         self.selected = True
-        r = Timer(10.0, self.stopSelectedFeedback)
+        r = Timer(5.0, self.stopSelectedFeedback)
         r.start()
 
     def stopSelectedFeedback(self):
         data = bytearray([6, 0])
         self.changeLeds(data)
         self.selected = False
+
+    def stopMovement(self):
+        data = bytearray([7])
+        self.changeLeds(data)
 
     def update(self, data):
         if not self.selected:
