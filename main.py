@@ -60,8 +60,8 @@ def background_thread():
     while 1:
         #pass
         socketio.sleep(0.5)
-        samples = readModule.addDAQSample()
-        powerConsumptionModule.getPower(samples)
+        #samples = readModule.addDAQSample()
+        #powerConsumptionModule.getPower(samples)
 
 def interruptHandler(gpio):
     timestamp = time.time()
@@ -75,9 +75,8 @@ def index():
 
 @socketio.on('initConfig')
 def receiveInitialConfigs(message):
-    socketControl.changeRelay(message["relayState"])
-    AddressableLedController().initializeLeds(message["orientation"], message["position"], message["delay"],
-                                              message["relayState"], message["personNear"])
+    socketControl.initializeRelay(message["relayState"])
+    AddressableLedController().initializeLeds(message["leds"], message["relayState"], message["personNear"], message["delay"])
 
 @socketio.on('changeRelayState')
 def changeRelayState(message):
@@ -109,6 +108,10 @@ def ping_pong():
 @socketio.on('selected')
 def selected(message):
     AddressableLedController().makeSelectedFeedback()
+
+@socketio.on('stop')
+def selected(message):
+    AddressableLedController().stopMovement()
 
 @socketio.on('connect')
 def test_connect():
