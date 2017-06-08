@@ -16,8 +16,8 @@ class EdisonControl(SocketControl):
         self.relay.write(state)
         AddressableLedController().changeRelayState(state)
 
-    def initializeRelay(self):
-        self.relay.write(1)
+    def initializeRelay(self, state):
+        self.relay.write(state)
         #self.ledController.changeRelayState(1)
 
     def calibrate(self):

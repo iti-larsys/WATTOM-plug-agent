@@ -1,4 +1,4 @@
-import mraa, struct
+import mraa, struct, time
 from PublishSubscriber.Subscriber import Subscriber
 from threading import Timer
 
@@ -30,10 +30,11 @@ class AddressableLedController(Subscriber):
         data = bytearray([2,relayState])
         self.changeLeds(data)
 
+    '''
     def changeOrientation(self, orientation):
         data = bytearray([3,orientation])
         self.changeLeds(data)
-
+    '''
     def personChange(self, personState):
         print("person " + str(personState))
         data = bytearray([4,personState])
@@ -45,42 +46,46 @@ class AddressableLedController(Subscriber):
         int_to_four_bytes = struct.Struct('<I').pack
         # Done many times (you need to mask here, because your number is >32 bits)
         y1, y2, y3, y4 = int_to_four_bytes(int(delay) & 0xFFFFFFFF)
-        data = bytearray([5, y1, y2, y3, y4])
+        data = bytearray([3, y1, y2, y3, y4])
         self.changeLeds(data)
 
-    def changeLed(self, ledID):
-        data = bytearray([6,ledID])
-        self.changeLeds(data)
-
-    def initializeLeds(self, orientation, ledID, delay, relayState, personState):
+    def initializeLeds(self, leds, relayState, personNear, delay):
         # first byte at 0 indicates, that we are sending the initial config, second indicates the kind of movement
         # Done once
-        print ("Delay " + str(delay))
+        print(leds)
         int_to_four_bytes = struct.Struct('<I').pack
         # Done many times (you need to mask here, because your number is >32 bits)
         y1, y2, y3, y4 = int_to_four_bytes(int(delay) & 0xFFFFFFFF)
-        data = bytearray([0,orientation, ledID, relayState, personState, y1, y2, y3, y4])
+        data = bytearray([0, relayState, personNear, len(leds), y1, y2, y3, y4])
         self.changeLeds(data)
+        for led in leds:
+            data = bytearray([4])
+            data.append(int(led["position"]))
+            data.append(int(led["orientation"]))
+            data.append(int(led["red"]))
+            data.append(int(led["green"]))
+            data.append(int(led["blue"]))
+            time.sleep(0.5)
 
     def changeLeds(self, data):
         print(data)
         AddressableLedController.i2c.write(data)
         print("Enviei")
 
-    def makeSelectedFeedback(self):
-        data = bytearray([6, 1])
+    def makeSelectedFeedback(self, selectedLed):
+        data = bytearray([6, selectedLed])
         self.changeLeds(data)
-        self.selected = True
-        r = Timer(5.0, self.stopSelectedFeedback)
+        #self.selected = True
+        r = Timer(5.0, self.stopSelectedFeedback, [selectedLed])
         r.start()
 
-    def stopSelectedFeedback(self):
-        data = bytearray([6, 0])
+    def stopSelectedFeedback(self, selectedLed):
+        data = bytearray([7, 0])
         self.changeLeds(data)
-        self.selected = False
+        #self.selected = False
 
     def stopMovement(self):
-        data = bytearray([7])
+        data = bytearray([8])
         self.changeLeds(data)
 
     def update(self, data):
