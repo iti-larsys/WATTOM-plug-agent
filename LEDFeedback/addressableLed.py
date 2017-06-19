@@ -65,7 +65,7 @@ class AddressableLedController(Subscriber):
             data.append(int(led["red"]))
             data.append(int(led["green"]))
             data.append(int(led["blue"]))
-            time.sleep(0.5)
+            self.changeLeds(data)
 
     def changeLeds(self, data):
         print(data)
@@ -73,14 +73,14 @@ class AddressableLedController(Subscriber):
         print("Enviei")
 
     def makeSelectedFeedback(self, selectedLed):
-        data = bytearray([6, selectedLed])
+        data = bytearray([6, int(selectedLed)])
         self.changeLeds(data)
         #self.selected = True
-        r = Timer(5.0, self.stopSelectedFeedback, [selectedLed])
+        r = Timer(5.0, self.stopSelectedFeedback, [int(selectedLed)])
         r.start()
 
     def stopSelectedFeedback(self, selectedLed):
-        data = bytearray([7, 0])
+        data = bytearray([7, selectedLed])
         self.changeLeds(data)
         #self.selected = False
 

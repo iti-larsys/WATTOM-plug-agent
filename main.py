@@ -107,7 +107,7 @@ def ping_pong():
 
 @socketio.on('selected')
 def selected(message):
-    AddressableLedController().makeSelectedFeedback()
+    AddressableLedController().makeSelectedFeedback(message["led"])
 
 @socketio.on('stop')
 def selected(message):
