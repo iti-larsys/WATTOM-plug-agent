@@ -1,15 +1,17 @@
-from flask import Flask, render_template, session, request
-from flask_socketio import SocketIO, emit, join_room, leave_room, \
-    close_room, rooms, disconnect
-from mDNS.mDNS_Advertisement import mDNS_Advertisment
-from DataAcquisition.edisonRead import EdisonRead
-from PowerConsumption.edisonPowerConsumption import EdisonPowerConsumption
-from LEDFeedback.addressableLed import AddressableLedController
-from SocketControl.edisonControl import EdisonControl
-from EventDetector.eventDetection import EventDetection
-from Sending.sendingModule import DataSender
-import mraa, time, socket, signal, sys
+import mraa
 import netifaces as ni
+import signal
+import socket
+import sys
+import time
+from flask import Flask, request
+from flask_socketio import SocketIO, emit
+
+from DataAcquisition.edisonRead import EdisonRead
+from LEDFeedback.addressableLed import AddressableLedController
+from PowerConsumption.edisonPowerConsumption import EdisonPowerConsumption
+from SocketControl.edisonControl import EdisonControl
+from mDNS.MdnsAdvertisment import MdnsAdvertisment
 
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
@@ -23,95 +25,98 @@ thread = None
 
 ip = ni.ifaddresses('wlan0')[2][0]['addr']
 
-mainVoltage = 230 # TODO Comes from a configuration file
+mainVoltage = 230  # TODO Comes from a configuration file
 
-socketControl = EdisonControl(mainVoltage)
+socket_control = EdisonControl(mainVoltage)
 
-mDNS = mDNS_Advertisment()
+mDNS = MdnsAdvertisment()
 x = mraa.Gpio(20)
+
 
 def signal_handler(signal, frame):
     print('You pressed Ctrl+C!')
     x.isrExit()
-    mDNS.stopAdvertise()
-    AddressableLedController().stopMovement()
+    mDNS.stop_advertise()
+    AddressableLedController().stop_movement()
     sys.exit(0)
 
-def registerInterrupt():
-     x.dir(mraa.DIR_IN)
-     x.isr(mraa.EDGE_RISING, interruptHandler, x)
+
+def register_interrupt():
+    x.dir(mraa.DIR_IN)
+    x.isr(mraa.EDGE_RISING, interrupt_handler, x)
 
 
 def background_thread():
     """Example of how to send server generated events to clients."""
-    registerInterrupt()
+    register_interrupt()
     signal.signal(signal.SIGINT, signal_handler)
-    readModule = EdisonRead(socketControl)
-    powerConsumptionModule = EdisonPowerConsumption(socketControl)
+    read_module = EdisonRead(socket_control)
+    power_consumption_module = EdisonPowerConsumption(socket_control)
     url1 = "http://common_room-35d864a6c6aedaf32848a1dc00e6c9d962478dc1f6a4925:938cf5ebbbb69ec1ca07098326528ffc9a89db31fdc65454@192.168.10.145:3000/api/json/plugs_events"
     url2 = "http://common_room-35d864a6c6aedaf32848a1dc00e6c9d962478dc1f6a4925:938cf5ebbbb69ec1ca07098326528ffc9a89db31fdc65454@192.168.10.145:3000/api/json/continuous_measuring"
-    #dataSenderModule = DataSender(url1, url2)
-    #eventDetectorModule = EventDetection(dataSenderModule)
-    ledControlModule = AddressableLedController()
-    powerConsumptionModule.add(ledControlModule)
-    #powerConsumptionModule.add(dataSenderModule)
-    #powerConsumptionModule.add(eventDetectorModule)
+    # dataSenderModule = DataSender(url1, url2)
+    # eventDetectorModule = EventDetection(dataSenderModule)
+    led_control_module = AddressableLedController()
+    power_consumption_module.add(led_control_module)
+    # power_consumption_module.add(dataSenderModule)
+    # power_consumption_module.add(eventDetectorModule)
 
     while 1:
-        #pass
+        # pass
         socketio.sleep(0.5)
-        #samples = readModule.addDAQSample()
-        #powerConsumptionModule.getPower(samples)
+        # samples = read_module.addDAQSample()
+        # power_consumption_module.getPower(samples)
 
-def interruptHandler(gpio):
+
+def interrupt_handler(gpio):
     timestamp = time.time()
     print("Vou enviar heartbeat")
-    #socketio.sleep(1)
+    # socketio.sleep(1)
     socketio.emit("heartbeat", {"timestamp": timestamp, "hostname": socket.gethostname()})
 
-@app.route('/')
-def index():
-    return render_template('index.html', async_mode=socketio.async_mode)
 
 @socketio.on('initConfig')
-def receiveInitialConfigs(message):
-    socketControl.initializeRelay(message["relayState"])
-    AddressableLedController().initializeLeds(message["leds"], message["relayState"], message["personNear"], message["delay"])
+def receive_initial_configs(message):
+    socket_control.initialize_relay(message["relayState"])
+    AddressableLedController().initialize_leds(message["leds"], message["relayState"], message["personNear"],
+                                               message["delay"])
+
 
 @socketio.on('changeRelayState')
-def changeRelayState(message):
-    socketControl.changeRelay(message["relayState"])
-    AddressableLedController().changeRelayState(message["relayState"])
+def change_relay_state(message):
+    socket_control.change_relay(message["relayState"])
+    AddressableLedController().change_relay_state(message["relayState"])
 
-@socketio.on('changeOrientation')
-def changeOrientation(message):
-    print(message)
-    print("Going to change orientation")
-    AddressableLedController().changeOrientation(message["orientation"])
 
 @socketio.on('changePersonNear')
-def changePersonNear(message):
-    AddressableLedController().personChange(message["personNear"])
+def change_person_near(message):
+    AddressableLedController().person_change(message["personNear"])
+
 
 @socketio.on('changeDelay')
-def changeDelay(message):
-    AddressableLedController().changeDelay(message["delay"])
+def change_delay(message):
+    AddressableLedController().change_delay(message["delay"])
+
 
 @socketio.on('changePosition')
-def changePosition(message):
+def change_position(message):
     AddressableLedController().changeLed(message["position"])
+
 
 @socketio.on('my_ping')
 def ping_pong():
     emit('my_pong')
 
+
 @socketio.on('selected')
 def selected(message):
-    AddressableLedController().makeSelectedFeedback(message["led"])
+    AddressableLedController().make_selected_feedback(message["led"])
+
 
 @socketio.on('stop')
 def selected(message):
-    AddressableLedController().stopMovement()
+    AddressableLedController().stop_movement()
+
 
 @socketio.on('connect')
 def test_connect():

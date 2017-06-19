@@ -1,13 +1,16 @@
 from abc import ABC, abstractmethod
 
+
 class SocketControl(ABC):
+    def __init__(self, voltage):
+        self.voltage = voltage
 
     @abstractmethod
-    def changeRelay(self):
+    def change_relay(self, state):
         pass
 
-    def setVoltage(self, voltage):
-        self.voltage = voltage
+    def set_voltage(self, voltage):
+        pass
 
     @abstractmethod
     def calibrate(self):
