@@ -1,48 +1,53 @@
-import aiohttp
 import asyncio
+import json
+import threading
+
+import aiohttp
 import async_timeout
-import grequests, time
-import json, threading
+
 from PublishSubscriber.Subscriber import Subscriber
 
+
+# noinspection PyMethodMayBeStatic,PyMethodMayBeStatic,PyBroadException,PyBroadException
 class DataSender(Subscriber):
-    def __init__(self, collectionEventURL, collectionDataURL):
-        self.EventCollectionUrl = collectionEventURL
-        self.DataCollectionUrl = collectionDataURL
+    def __init__(self, collection_event_url, collection_data_url):
+        self.EventCollectionUrl = collection_event_url
+        self.DataCollectionUrl = collection_data_url
         self.buffer = []
         self.dataSendSemaphore = threading.Semaphore(value=0)
 
-    def sendDataEvent(self, data):
+    def send_data_event(self, data):
         """
         Function made to send events data when they are detected.
-        :param payload:
+        :param data:
         :return:
         """
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.askToSendEvent(loop, data))
+        loop.run_until_complete(self.ask_to_send_event(loop, data))
 
-    async def sendEvent(self, session, payload):
+    async def send_event(self, session, payload):
         with async_timeout.timeout(10):
             headers = {'content-type': 'application/json'}
-            async with session.post(self.EventCollectionUrl,  headers=headers, data=json.dumps(payload)) as response:
+            async with session.post(self.EventCollectionUrl, headers=headers, data=json.dumps(payload)) as response:
                 return
 
-    async def askToSendEvent(self,loop, data):
+    async def ask_to_send_event(self, loop, data):
         try:
             async with aiohttp.ClientSession(loop=loop) as session:
-                await self.sendEvent(session, data)
+                await self.send_event(session, data)
         except:
             print("Error sending")
 
-    async def sendDataValues(self,session, payload):
+    async def send_data_values(self, session, payload):
         """
         Function made to send measured current and power values.
+        :param session:
         :param payload:
         :return:
         """
         with async_timeout.timeout(10):
             headers = {'content-type': 'application/json'}
-            async with session.post(self.DataCollectionUrl,  headers=headers, data=json.dumps(payload)) as response:
+            async with session.post(self.DataCollectionUrl, headers=headers, data=json.dumps(payload)) as response:
                 return
 
     def callback_function(self, response):
@@ -51,24 +56,24 @@ class DataSender(Subscriber):
         print("HTTP Response Body" + response.body)
         print("HTTP Response Raw Body" + response.raw_body)
 
-
-    def requestException(self,request, exception):
+    def request_exception(self, request, exception):
         print("Unable to send data: " + str(exception))
 
-    async def sendValues(self, loop, data):
+    async def send_values(self, loop, data):
         try:
             async with aiohttp.ClientSession(loop=loop) as session:
-                await self.sendDataValues(session, data)
+                await self.send_data_values(session, data)
         except:
             print("Error sending")
 
-    def update(self,data):
+    def update(self, data):
         print("Going to send power data")
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.sendValues(loop, data))
+        loop.run_until_complete(self.send_values(loop, data))
         # print("Going to send power data")
         # self.buffer.append(data)
         # self.dataSendSemaphore.release()
+
 
 """
 if __name__ == "__main__":

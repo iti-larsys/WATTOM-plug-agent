@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
-class Subscriber(ABC):
 
+class Subscriber(ABC):
     @abstractmethod
-    def update(self,data):
+    def update(self, data):
         """
         What a subscriber after the publisher receive a value
         :param data:

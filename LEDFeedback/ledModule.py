@@ -1,130 +1,132 @@
+import threading
+import time
+
 import mraa
-import threading, time
+
 from PublishSubscriber.Subscriber import Subscriber
 
-class LedController(Subscriber):
 
-    def __init__(self, pinRed, pinBlue, pinGreen):
-        self.pwmRed = mraa.Pwm(pinRed)
-        self.pwmGreen = mraa.Pwm(pinGreen)
-        self.pwmBlue = mraa.Pwm(pinBlue)
-        #Enables the pin's
-        self.pwmRed.enable(True)
-        self.pwmGreen.enable(True)
-        self.pwmBlue.enable(True)
-        #self.processedSamplesQueue = processedSamplesQueue
-        #self.processedSamplesQueueLock = processedSamplesQueueLock
+class LedController(Subscriber):
+    def __init__(self, pin_red, pin_blue, pin_green):
+        self.power = 0
+        self.pwm_red = mraa.Pwm(pin_red)
+        self.pwm_green = mraa.Pwm(pin_green)
+        self.pwm_blue = mraa.Pwm(pin_blue)
+        # Enables the pin's
+        self.pwm_red.enable(True)
+        self.pwm_green.enable(True)
+        self.pwm_blue.enable(True)
+        # self.processedSamplesQueue = processedSamplesQueue
+        # self.processedSamplesQueueLock = processedSamplesQueueLock
         # STATE CONSTANTS
         self.CONST_STATE_GREEN = "green"
         self.CONST_STATE_YELLOW = "yellow"
         self.CONST_STATE_RED = "red"
-        #Leds State
-        self.currentState = self.CONST_STATE_GREEN
-        self.pastState = self.CONST_STATE_GREEN
-        #The color min value
+        # Leds State
+        self.current_state = self.CONST_STATE_GREEN
+        self.past_state = self.CONST_STATE_GREEN
+        # The color min value
         self.CONST_GRADIENT = 0.10
-        #Starts with the led in green
-        self.pinRed = 0.0000
-        self.pinBlue = 0.0000
-        self.pinGreen = 0.0000
+        # Starts with the led in green
+        self.pin_red = 0.0000
+        self.pin_blue = 0.0000
+        self.pin_green = 0.0000
         """self.led(self.pinGreen,self.pinRed)
-        """#Data that is receive by the thread
-        self.powerBuffer = []
-        self.ledSemaphoreController = threading.Semaphore(value=0) # This will controll the led reads on the list that has the current values
+        """  # Data that is receive by the thread
+        self.power_buffer = []
+        self.led_semaphore_controller = threading.Semaphore(
+            value=0)  # This will controll the led reads on the list that has the current values
 
-    def led(self,valueGreen, valueRed):
+    def led(self, value_green, value_red):
         """
         Led color change
-        :param valueGreen:
-        :param valueRed:
+        :param value_green:
+        :param value_red:
         :return:
         """
-        self.pwmGreen.write(valueGreen)
-        self.pwmRed.write(valueRed)
+        self.pwm_green.write(value_green)
+        self.pwm_red.write(value_red)
 
-    def changeState(self, power):
+    def change_state(self):
         """
         Will make the current state var according with the power received.
-        :param power:
         :return:
         """
-        self.power = power
 
-        previousState = self.currentState
-        self.pastState = self.currentState
+        self.past_state = self.current_state
         if self.power >= 1000:
-            self.currentState = self.CONST_STATE_RED
-        elif self.power > 300 and self.power < 1000:
-            self.currentState = self.CONST_STATE_YELLOW
+            self.current_state = self.CONST_STATE_RED
+        elif 300 < self.power < 1000:
+            self.current_state = self.CONST_STATE_YELLOW
         else:
-            self.currentState = self.CONST_STATE_GREEN
+            self.current_state = self.CONST_STATE_GREEN
 
-
-    def colorChange(self):
-        if self.currentState == self.CONST_STATE_RED:
-            if self.pastState == self.CONST_STATE_RED:
-                self.led(0.0000,1.0000)
-                self.pinRed = 1.0000
-                self.pinGreen = 0.0000
-            elif self.pastState == self.CONST_STATE_YELLOW:
-                while self.pinGreen > 0.0000 and self.pinRed < 1.0000:
-                    self.pinGreen = self.pinGreen + self.CONST_GRADIENT
-                    self.led(self.pinGreen, 1.0000)
+    def color_change(self):
+        if self.current_state == self.CONST_STATE_RED:
+            if self.past_state == self.CONST_STATE_RED:
+                self.led(0.0000, 1.0000)
+                self.pin_red = 1.0000
+                self.pin_green = 0.0000
+            elif self.past_state == self.CONST_STATE_YELLOW:
+                while self.pin_green > 0.0000 and self.pin_red < 1.0000:
+                    self.pin_green = self.pin_green + self.CONST_GRADIENT
+                    self.led(self.pin_green, 1.0000)
                     time.sleep(0.1)
-                self.pastState = self.CONST_STATE_RED
+                self.past_state = self.CONST_STATE_RED
             else:
-                while self.pinGreen > 0.0000 and self.pinRed < 1.0000:
-                    self.pinRed = self.pinRed + self.CONST_GRADIENT
-                    self.pinGreen = self.pinGreen - self.CONST_GRADIENT
-                    self.led(self.pinGreen, self.pinRed)
+                while self.pin_green > 0.0000 and self.pin_red < 1.0000:
+                    self.pin_red = self.pin_red + self.CONST_GRADIENT
+                    self.pin_green = self.pin_green - self.CONST_GRADIENT
+                    self.led(self.pin_green, self.pin_red)
                     time.sleep(0.1)
-                self.pastState = self.CONST_STATE_RED
+                self.past_state = self.CONST_STATE_RED
 
-
-        if self.currentState == self.CONST_STATE_YELLOW:
-            if self.pastState == self.CONST_STATE_YELLOW:
-                self.led(1.0000,1.0000)
-                self.pinRed = 1.0000
-                self.pinGreen = 1.0000
-            elif self.pastState == self.CONST_STATE_RED:
-                while self.pinGreen < 1.0000:
-                    self.pinGreen = self.pinGreen + self.CONST_GRADIENT
-                    self.led(self.pinGreen, 1.0000)
+        if self.current_state == self.CONST_STATE_YELLOW:
+            if self.past_state == self.CONST_STATE_YELLOW:
+                self.led(1.0000, 1.0000)
+                self.pin_red = 1.0000
+                self.pin_green = 1.0000
+            elif self.past_state == self.CONST_STATE_RED:
+                while self.pin_green < 1.0000:
+                    self.pin_green = self.pin_green + self.CONST_GRADIENT
+                    self.led(self.pin_green, 1.0000)
                     time.sleep(0.1)
-                self.pastState = self.CONST_STATE_YELLOW
-            else :
-                while self.pinRed < 1.0000:
-                    self.pinRed = self.pinRed + self.CONST_GRADIENT
-                    self.led(1.0000, self.pinRed)
-                    time.sleep(0.1)
-                self.pastState = self.CONST_STATE_YELLOW
-        
-        if self.currentState == self.CONST_STATE_GREEN:
-            if self.pastState == self.CONST_STATE_GREEN:
-                self.led(1.0000,0.0000) #TODO PROBABLY NEED TO TI CHANFE THE GREEN VALUE AN NOT CHANGE IT SO NEED TO READ FROM THE PIN
-                self.pinRed = 0.0000
-                self.pinGreen = 1.0000
-            elif self.pastState == self.CONST_STATE_RED:
-                while self.pinGreen < 1.0000 and self.pinRed > 0.0000:
-                    self.pinRed = self.pinRed - self.CONST_GRADIENT
-                    self.pinGreen = self.pinGreen + self.CONST_GRADIENT
-                    self.led(self.pinGreen,self.pinRed)
-                    time.sleep(0.1)
-                self.pastState = self.CONST_STATE_GREEN
+                self.past_state = self.CONST_STATE_YELLOW
             else:
-                while self.pinGreen < 1.0000 and self.pinRed > 0.0000:
-                    self.pinRed = self.pinRed - self.CONST_GRADIENT
-                    self.led(1.0000,self.pinRed)
+                while self.pin_red < 1.0000:
+                    self.pin_red = self.pin_red + self.CONST_GRADIENT
+                    self.led(1.0000, self.pin_red)
                     time.sleep(0.1)
-                self.pastState = self.CONST_STATE_GREEN
+                self.past_state = self.CONST_STATE_YELLOW
 
-    def update(self,data):
-        #print("LED receive power")
-        self.powerBuffer.append(data['power'])
-        self.ledSemaphoreController.release()
-        #print("Subscriber LED " + ))
-        #self.changeState(data['power'])
-        #self.colorChange()
+        if self.current_state == self.CONST_STATE_GREEN:
+            if self.past_state == self.CONST_STATE_GREEN:
+                self.led(1.0000,
+                         0.0000)  # TODO PROBABLY NEED TO TI CHANFE THE GREEN VALUE AN NOT CHANGE IT SO NEED TO READ FROM THE PIN
+                self.pin_red = 0.0000
+                self.pin_green = 1.0000
+            elif self.past_state == self.CONST_STATE_RED:
+                while self.pin_green < 1.0000 and self.pin_red > 0.0000:
+                    self.pin_red = self.pin_red - self.CONST_GRADIENT
+                    self.pin_green = self.pin_green + self.CONST_GRADIENT
+                    self.led(self.pin_green, self.pin_red)
+                    time.sleep(0.1)
+                self.past_state = self.CONST_STATE_GREEN
+            else:
+                while self.pin_green < 1.0000 and self.pin_red > 0.0000:
+                    self.pin_red = self.pin_red - self.CONST_GRADIENT
+                    self.led(1.0000, self.pin_red)
+                    time.sleep(0.1)
+                self.past_state = self.CONST_STATE_GREEN
+
+    def update(self, data):
+        # print("LED receive power")
+        self.power_buffer.append(data['power'])
+        self.led_semaphore_controller.release()
+        # print("Subscriber LED " + ))
+        # self.changeState(data['power'])
+        # self.colorChange()
+
 
 """
 if __name__ == "__main__":

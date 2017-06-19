@@ -1,5 +1,6 @@
-import time, threading
+import time
 from abc import ABC, abstractmethod
+
 
 class ADataAcquisition(ABC, ):
     result = 0
@@ -7,10 +8,10 @@ class ADataAcquisition(ABC, ):
     countSamples = 0
     timestamp = time.time()
 
-    def __init__(self, socketControl):
-        self.socketControl = socketControl
+    def __init__(self, socket_control):
+        self.socketControl = socket_control
         self.adc = self.socketControl.adc
 
     @abstractmethod
-    def addDAQSample(self):
+    def add_d_acq_sample(self):
         pass
