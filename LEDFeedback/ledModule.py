@@ -7,7 +7,16 @@ from PublishSubscriber.Subscriber import Subscriber
 
 
 class LedController(Subscriber):
+    """
+    Class that handles the normal RGB LEDs to Energy Feedback
+    """
     def __init__(self, pin_red, pin_blue, pin_green):
+        """
+        Constructor
+        :param pin_red: GPIO Pin Number of Red LED
+        :param pin_blue: GPIO Pin Number of Blue LED
+        :param pin_green: GPIO Pin Number of Green LED
+        """
         self.power = 0
         self.pwm_red = mraa.Pwm(pin_red)
         self.pwm_green = mraa.Pwm(pin_green)
@@ -62,6 +71,10 @@ class LedController(Subscriber):
             self.current_state = self.CONST_STATE_GREEN
 
     def color_change(self):
+        """
+        Change colors of LEDs according with the consumption state
+        :return:
+        """
         if self.current_state == self.CONST_STATE_RED:
             if self.past_state == self.CONST_STATE_RED:
                 self.led(0.0000, 1.0000)

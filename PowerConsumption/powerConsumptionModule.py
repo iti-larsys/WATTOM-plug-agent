@@ -4,12 +4,24 @@ from PublishSubscriber.Publisher import Publisher
 
 
 class PowerConsumption(Publisher):
+    """
+    Class that handles the generic computation of power
+    """
+
     def __init__(self, socket_control):
+        """
+        Constructor
+        :param socket_control: SocketControl object
+        """
         self.socketControl = socket_control
         self.mainVoltage = self.socketControl.voltage
 
     def get_power(self, samples):
-
+        """
+        Calculates the power using the current samples measured
+        :param samples:
+        :return:
+        """
         result = 0
         print("Going to calculate power")
 
@@ -41,4 +53,10 @@ class PowerConsumption(Publisher):
 
     @abstractmethod
     def calculate_rms(self, result, length):
+        """
+        Method used to calculate RMS
+        :param result: Sum of a sample values squared
+        :param length: Length of samples
+        :return:
+        """
         pass

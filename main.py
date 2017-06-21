@@ -16,7 +16,7 @@ from mDNS.MdnsAdvertisment import MdnsAdvertisment
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
 # the best option based on installed packages.
-async_mode = None
+async_mode = "gevent"
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -34,6 +34,12 @@ x = mraa.Gpio(20)
 
 
 def signal_handler(signal, frame):
+    """
+    Invoked when Ctrl+C is pressed
+    :param signal:
+    :param frame:
+    :return:
+    """
     print('You pressed Ctrl+C!')
     x.isrExit()
     mDNS.stop_advertise()
@@ -42,12 +48,20 @@ def signal_handler(signal, frame):
 
 
 def register_interrupt():
+    """
+    Register an Software interrupt to handle the Arduino Heartbeats
+    :return:
+    """
     x.dir(mraa.DIR_IN)
     x.isr(mraa.EDGE_RISING, interrupt_handler, x)
 
 
 def background_thread():
-    """Example of how to send server generated events to clients."""
+    """
+    Background thread that handle all the code that is not related with the communication with the broker
+    Like receiveing the hearbeats, reading and calculating power, and sending it to server
+    :return:
+    """
     register_interrupt()
     signal.signal(signal.SIGINT, signal_handler)
     read_module = EdisonRead(socket_control)
@@ -63,12 +77,17 @@ def background_thread():
 
     while 1:
         # pass
-        socketio.sleep(0.5)
+        socketio.sleep(0.5)  # This can't be removed, otherwise the heartbeats sending will fail
         # samples = read_module.addDAQSample()
         # power_consumption_module.getPower(samples)
 
 
 def interrupt_handler(gpio):
+    """
+    Handles the Arduino Heartbeats and sends it to the broker
+    :param gpio:
+    :return:
+    """
     timestamp = time.time()
     print("Vou enviar heartbeat")
     # socketio.sleep(1)

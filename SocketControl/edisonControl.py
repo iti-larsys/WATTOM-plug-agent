@@ -5,7 +5,14 @@ import mraa
 
 
 class EdisonControl(SocketControl):
+    """
+    Extension of SocketControl to adapt to Edison Socket
+    """
     def __init__(self, voltage):
+        """
+        Construtctor
+        :param voltage:
+        """
         super().__init__(voltage)
         self.adc = Adc()
         self.voltage = voltage
@@ -15,14 +22,27 @@ class EdisonControl(SocketControl):
         self.ledControl = AddressableLedController()
 
     def change_relay(self, state):
+        """
+        Chage the state of the relay
+        :param state: The state expected to the relay
+        :return:
+        """
         self.relay.write(state)
         AddressableLedController().change_relay_state(state)
 
     def initialize_relay(self, state):
+        """
+        Initializes the relay with the given state
+        :param state: expected initial state
+        :return:
+        """
         self.relay.write(state)
-        # self.ledController.changeRelayState(1)
 
     def calibrate(self):
+        """
+        Calibrates the ADC measures
+        :return:
+        """
         average_voltage = 0
         for i in range(5000):
             average_voltage += self.adc.adc_read()
@@ -30,6 +50,10 @@ class EdisonControl(SocketControl):
         return round(average_voltage)
 
     def initialize_adc(self):
+        """
+        Initialize the ADC
+        :return:
+        """
         ain0_operational_status = 0b0
         ain0_input_multiplexer_configuration = 0b100
         ain0_programmable_gain_amplifier_configuration = 0b001

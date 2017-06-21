@@ -4,7 +4,14 @@ from DataAcquisition.readModule import ADataAcquisition
 
 
 class EdisonRead(ADataAcquisition):
+    """
+    Extension of ADataAcquisition to handle the readings using Inter Edison
+    """
     def __init__(self, socket_control):
+        """
+        Constructor
+        :param socket_control:An object of SocketControl
+        """
         super().__init__(socket_control)
         self.samples = []
         self.samplesNum = 500
@@ -13,6 +20,10 @@ class EdisonRead(ADataAcquisition):
         self.adcZero = self.socketControl.calibrate()
 
     def add_d_acq_sample(self):
+        """
+        Reads the value of current measured during one second by the ADC
+        :return: A dictionary with all the the samples read and a timestamp of the last reading
+        """
         print("Reading function")
         self.samples = []
         start_time = time.time()

@@ -4,18 +4,35 @@ from PublishSubscriber.Subscriber import Subscriber
 
 
 class EventDetection(Subscriber):
+    """
+    Class that handles all the code for rising events (on/off)
+    """
     def __init__(self, data_sender):
-        self.store_power_samples = []
+        """
+        Constructor
+        :param data_sender: an object of DataSender
+        """
+        self.store_power_samples = []  # an array to store a window of 5 power samples used to detect events
         self.previous_event_time = 0
         self.timeThreshold = 5
         self.power_threshold = 25
         self.data_sender = data_sender
 
     def update(self, data):
+        """
+        Implementation of update from Subscriber class
+        :param data: a dictionary with power data
+        :return:
+        """
         print("Going to check event")
         self.detect_event(data["power"])
 
     def detect_event(self, power):
+        """
+        Detects events
+        :param power: last value of power measured
+        :return:
+        """
         state_value = ""
         print("Calculating event")
         self.store_power_samples.append(power)
