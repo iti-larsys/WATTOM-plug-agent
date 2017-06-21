@@ -10,6 +10,9 @@ ip = ni.ifaddresses('wlan0')[2][0]['addr']
 
 
 class MdnsAdvertisment:
+    """
+    Class to make mDNS Advertisements of the socket
+    """
     desc = {'path': '/~paulsm/'}
 
     info = ServiceInfo("_http._tcp.local.",
@@ -18,9 +21,16 @@ class MdnsAdvertisment:
                        desc, socket.gethostname() + ".local.")
 
     def __init__(self):
+        """
+        Constructor
+        """
         self.zeroconf = Zeroconf()
 
     def advertise(self):
+        """
+        Starts mDNS advertising
+        :return:
+        """
         logging.basicConfig(level=logging.DEBUG)
         if len(sys.argv) > 1:
             assert sys.argv[1:] == ['--debug']
@@ -30,6 +40,10 @@ class MdnsAdvertisment:
         self.zeroconf.register_service(self.info)
 
     def stop_advertise(self):
+        """
+        Stops mDNS advertising
+        :return:
+        """
         print("Unregistering...")
         self.zeroconf.unregister_service(self.info)
         self.zeroconf.close()
