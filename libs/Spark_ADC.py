@@ -107,41 +107,41 @@
 # //            0b10: Assert after four conversions.
 
 import mraa
-import fcntl, os
 
+
+# noinspection PyShadowingNames,PyShadowingNames
 class Adc:
+    def __init__(self, bus=1, address=0x48):
+        self.command = 0b1000001101000100
+        self.adc = mraa.I2c(1)
+        self.adc.address(address)
 
-	def __init__( self, bus = 1, address = 0x48):
-		self.command = 0b1000001101000100
-		self.adc = mraa.I2c(1)
-		self.adc.address(address)
+    def set_config_command(self, os, imc, pga, mode, rate, comp_mode, comp_pol, comp_lat, comp_que):
+        rate = rate << 13
+        comp_mode = comp_mode << 12
+        comp_pol = comp_pol << 11
+        comp_lat = comp_lat << 10
+        comp_que = comp_que << 8
+        os = os << 7
+        imc = imc << 4
+        pga = pga << 1
+        # mode = mode 			<< 0
+        self.command = os + imc + pga + mode + rate + comp_mode + comp_pol + comp_lat + comp_que
 
-	def set_config_command(self, os, imc, pga, mode, rate, comp_mode, comp_pol, comp_lat, comp_que):
-		rate = rate 			<< 13
-		comp_mode = comp_mode 	<< 12
-		comp_pol = comp_pol 	<< 11
-		comp_lat = comp_lat 	<< 10
-		comp_que = comp_que 	<< 8
-		os = os 				<< 7
-		imc = imc 				<< 4
-		pga = pga 				<< 1
-		#mode = mode 			<< 0
-		self.command = os + imc + pga + mode + rate + comp_mode + comp_pol + comp_lat + comp_que
+    def adc_read(self):
+        result = -2048
 
-	def adc_read(self):
-		result = -2048
+        self.adc.writeWordReg(0x01, self.command)
+        data = self.adc.readWordReg(0)
 
-		self.adc.writeWordReg(0x01,self.command)
-		data = self.adc.readWordReg(0)
+        result = 0
+        result += (data & 0XF000) >> 12
+        result += (data & 0X00F0) << 4
+        result += (data & 0X000F) << 4
+        if result > 0x7FF:
+            result = -1 * ((0x7FF * 2 + 2) + (~result))
+        return result
 
-		result = 0;
-		result += (data & 0XF000) >>12;
-		result += (data & 0X00F0) << 4;
-		result += (data & 0X000F) << 4;
-		if result > 0x7FF:
-			result =  -1*((0x7FF*2+2)+(~result))
-		return result
-
-	def __del__(self):
-		class_name = self.__class__.__name__
-		print (class_name, "destroyed")
+    def __del__(self):
+        class_name = self.__class__.__name__
+        print(class_name, "destroyed")
