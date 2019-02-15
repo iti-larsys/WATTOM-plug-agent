@@ -7,6 +7,7 @@ from zeroconf import ServiceInfo, Zeroconf
 import netifaces as ni
 
 ip = ni.ifaddresses('wlan0')[2][0]['addr']
+#ip = ni.ifaddresses('eth0')[2][0]['addr']
 
 
 class MdnsAdvertisment:
@@ -31,6 +32,7 @@ class MdnsAdvertisment:
         Starts mDNS advertising
         :return:
         """
+        print("Advertizing")
         logging.basicConfig(level=logging.DEBUG)
         if len(sys.argv) > 1:
             assert sys.argv[1:] == ['--debug']
