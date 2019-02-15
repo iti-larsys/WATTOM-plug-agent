@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+<script type="text/javascript" charset="utf-8">
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    socket.on('connect', function() {
+        //socket.emit('my_ping', {data: 'I\'m connected!'});
+    });
+
+    socket.on('my_response', function() {
+        console.log("got message")
+    });
+
+    function sendMessage(){
+        var message = document.getElementById("command").value;
+        socket.emit(message,{"command":1});
+    }
+
+    function sendRelayMessageON(){
+       
+        socket.emit("changeRelayState",{"relayState":1});
+    }
+   
+    function sendRelayMessageOFF(){
+       
+       socket.emit("changeRelayState",{"relayState":0});
+   }
+
+    function stopMovement(){
+        var message = document.getElementById("command").value;
+        socket.emit(message,{"command":0});
+    }
+    function sendStartAq(){
+        socket.emit("aquisition",{"command":1});
+    }
+    function sendStopAq(){
+        socket.emit("aquisition",{"command":0});
+    }
+</script>
+<input id="command" name="send command">
+<button onclick="sendMessage()">send message </button>
+<button onclick="stopMovement()">stop !!</button> <hr>
+<button onclick="sendRelayMessageON()">On message </button>
+<button onclick="sendRelayMessageOFF()">OFF message </button>
+<hr>
+<button onclick="sendStartAq()">Start Aquisition </button>
+<button onclick="sendStopAq()">Stop Aquisition </button>
+
+
+
+
+</body>
+</html>
+

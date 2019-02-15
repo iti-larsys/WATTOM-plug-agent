@@ -1,17 +1,17 @@
 from threading import Timer
 
-import mraa
+#import mraa
 import struct
 
-from PublishSubscriber.Subscriber import Subscriber
+# from PublishSubscriber.Subscriber import Subscriber
 
-
-class AddressableLedController(Subscriber):
+# class AddressableLedController(Subscriber):
+class AddressableLedController():
     """
     Class that handles the connection between Intel Edison and Arduino to control NeoPixel LEDs
     """
     __instance = None
-    x = mraa.Gpio(20)
+   # x = mraa.Gpio(20)
     selected = False
 
     def __new__(cls):
@@ -21,8 +21,8 @@ class AddressableLedController(Subscriber):
         """
         if AddressableLedController.__instance is None:
             AddressableLedController.__instance = object.__new__(cls)
-        AddressableLedController.i2c = mraa.I2c(6)
-        AddressableLedController.i2c.address(8)
+       # AddressableLedController.i2c = mraa.I2c(6)
+       # AddressableLedController.i2c.address(8)
         return AddressableLedController.__instance
 
     def change_power(self, power):
@@ -136,11 +136,11 @@ class AddressableLedController(Subscriber):
         data = bytearray([8])
         self.change_leds(data)
 
-    def update(self, data):
-        """
-        Implementation of update from Subscriber to receive the updated power values
-        :param data: the data received by the Publisher with power value
-        :return:
-        """
-        if not self.selected:
-            self.change_power(data["power"])
+    # def update(self, data):
+    #     """
+    #     Implementation of update from Subscriber to receive the updated power values
+    #     :param data: the data received by the Publisher with power value
+    #     :return:
+    #     """
+    #     if not self.selected:
+    #         self.change_power(data["power"])
