@@ -1,4 +1,4 @@
-async_timeout==1.4.0
+async_timeout==4.0.2
 aiohttp==3.8.4
 async-timeout==1.4.0
 grequests==0.6.0
